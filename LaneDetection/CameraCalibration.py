@@ -1,9 +1,17 @@
 import numpy as np
 import pickle
 import cv2
-import glob
+from glob import glob
 from scipy.misc import imresize, imread
 from tqdm import tqdm
+
+ROWS = 6
+COLS = 9
+CAL_IMAGE_SIZE = (720, 1280, 3)
+CALC_CAL_POINTS = False
+CAL_IMAGE_PATH = '../camera_cal/calibration*.jpg'
+CALIBRATION_PATH = '../camera_cal/calibration.p'
+
 
 def calculate_camera_calibration(path_pattern, rows, cols):
     """
@@ -67,14 +75,15 @@ def get_camera_calibration():
     return calibration;
 
 
-def cal_undistort(img, calibration):
-    """
-    Takes an image and a calibration object and returns the undistorted image.
-    """
-    objpoints = calibration['objpoints']
-    imgpoints = calibration['imgpoints']
+class CameraCalibrator:
+    def __init__(self, image_shape, calibration):
+        self.objpoints = calibration['objpoints']
+        self.imgpoints = calibration['imgpoints']
+        self.image_shape = image_shape
 
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-    dst = cv2.undistort(img, mtx, dist, None, mtx)
-    return dst
+        self.ret, self.mtx, self.dist, self.rvecs, self.tvecs = \
+            cv2.calibrateCamera(self.objpoints, self.imgpoints, image_shape, None, None)
+
+    def undistort(self, img):
+        return cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
+

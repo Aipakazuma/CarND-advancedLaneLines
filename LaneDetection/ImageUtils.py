@@ -124,8 +124,6 @@ def extract_dark(img):
 
 
 def generate_lane_mask(img):
-    # img = equalize_luminance(img)
-
     yuv = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
     gray = np.mean(yuv[:, :, 1:2], 2)
 

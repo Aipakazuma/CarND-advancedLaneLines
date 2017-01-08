@@ -1,15 +1,15 @@
-from CameraCalibration import cal_undistort
 from ImageUtils import *
 from Line import Line, calc_curvature
 from PerspectiveTransformer import PerspectiveTransformer
 
 
 class LaneDetector:
-    def __init__(self, perspective_src, perspective_dst, n_frames=1, cam_calibration=None, line_segments=10):
+    def __init__(self, perspective_src, perspective_dst, n_frames=1, cam_calibration=None, line_segments=10, transform_offset=0):
         # Frame memory
         self.n_frames = n_frames
         self.cam_calibration = cam_calibration
         self.line_segments = line_segments
+        self.image_offset = transform_offset
 
         self.left_line = None
         self.right_line = None
@@ -87,7 +87,7 @@ class LaneDetector:
 
         # Apply the distortion correction to the raw image.
         if self.cam_calibration is not None:
-            frame = cal_undistort(frame, self.cam_calibration)
+            frame = self.cam_calibration.undistort(frame)
 
         # Use color transforms, gradients, etc., to create a thresholded binary image.
         frame = gaussian_blur(frame, kernel_size=5)
@@ -97,8 +97,8 @@ class LaneDetector:
         frame = self.perspective_transformer.transform(frame)
 
         # mask outside are of persp trans
-        frame[:, frame.shape[1] - OFFSET:] = 0
-        frame[:, :OFFSET] = 0
+        frame[:, frame.shape[1] - self.image_offset:] = 0
+        frame[:, :self.image_offset] = 0
 
         left_detected = False
         right_detected = False
@@ -119,11 +119,11 @@ class LaneDetector:
 
         if not left_detected:
             left_x, left_y = histogram_lane_detection(
-                frame, self.line_segments, (OFFSET, frame.shape[1] // 2), h_window=21, v_window=3)
+                frame, self.line_segments, (self.image_offset, frame.shape[1] // 2), h_window=21, v_window=3)
             left_x, left_y = outlier_removal(left_x, left_y)
         if not right_detected:
             right_x, right_y = histogram_lane_detection(
-                frame, self.line_segments, (frame.shape[1] // 2, frame.shape[1] - OFFSET), h_window=21, v_window=3)
+                frame, self.line_segments, (frame.shape[1] // 2, frame.shape[1] - self.image_offset), h_window=21, v_window=3)
             right_x, right_y = outlier_removal(right_x, right_y)
 
         if self.__line_found((left_x, left_y), (right_x, right_y)):
