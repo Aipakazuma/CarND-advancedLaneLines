@@ -65,7 +65,7 @@ def get_camera_calibration():
     calculated and stored on disk or loaded.
     """
     if CALC_CAL_POINTS:
-        calibration = calculate_camera_calibration(CAL_IMAGE_PATH, ROWS, COLS, CAL_IMAGE_SIZE)
+        calibration = calculate_camera_calibration(CAL_IMAGE_PATH, ROWS, COLS)
         with open(CALIBRATION_PATH, 'wb') as f:
             pickle.dump(calibration, file=f)
     else:

@@ -1,6 +1,7 @@
 from ImageUtils import *
 from Line import Line, calc_curvature
 from PerspectiveTransformer import PerspectiveTransformer
+import matplotlib.pyplot as plt
 
 
 class LaneDetector:
@@ -51,16 +52,18 @@ class LaneDetector:
         selection = (overlay != 0)
         img[selection] = img[selection] * 0.3 + overlay[selection] * 0.7
 
-        center_line = np.zeros([img.shape[0], img.shape[1]])
-        center_line = draw_poly_arr(center_line, self.center_poly, 20, 1., 5, True, tip_length=0.5)
-        center_line = self.perspective_transformer.inverse_transform(center_line)
-        img[center_line == 1.] = (1., 0.3, 0.01)
+        #center line
+        mask[:] = 0
+        mask = draw_poly_arr(mask, self.center_poly, 20, 1., 5, True, tip_length=0.5)
+        mask = self.perspective_transformer.inverse_transform(mask)
+        img[mask == 1.] = (1., 0.3, 0.01)
 
-        lines_best = np.zeros([img.shape[0], img.shape[1]])
-        lines_best = draw_poly(lines_best, self.left_line.best_fit_poly, 5, 1.)
-        lines_best = draw_poly(lines_best, self.right_line.best_fit_poly, 5, 1.)
-        lines_best = self.perspective_transformer.inverse_transform(lines_best)
-        img[lines_best == 1.] = (1., 0.8, 0.01)
+        #lines best
+        mask[:] = 0
+        mask = draw_poly(mask, self.left_line.best_fit_poly, 5, 1.)
+        mask = draw_poly(mask, self.right_line.best_fit_poly, 5, 1.)
+        mask = self.perspective_transformer.inverse_transform(mask)
+        img[mask == 1.] = (1., 0.8, 0.01)
 
     def __detect_line(self, img, line, window):
         line_detected = False

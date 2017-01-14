@@ -4,16 +4,37 @@ from scipy import signal
 
 
 def img_to_float(img):
+    """
+    Converts the pixel representation of an image to float and scales it to 0-1 range.
+
+    :param img:
+    :return:
+    """
     img = img.astype(np.float32)
     img /= 255
     return img
 
 
 def img_to_int(img):
+    """
+    Converts the pixel representation of an image to int and scales it to 0-255 range.
+
+    :param img:
+    :return:
+    """
     return (img * 255).astype(np.uint8)
 
 
 def abs_sobel_thresh(img_ch, orient='x', sobel_kernel=3, thresh=(0., 1.)):
+    """
+    Applies the sobel operator and returns a thresholded mask.
+
+    :param img_ch:
+    :param orient: axis to use. Ether x or y.
+    :param sobel_kernel:
+    :param thresh: tuple defining the range for the threshold. Includes the bounds.
+    :return: binary mask
+    """
     if orient == 'x':
         axis = (1, 0)
     elif orient == 'y':
@@ -24,37 +45,49 @@ def abs_sobel_thresh(img_ch, orient='x', sobel_kernel=3, thresh=(0., 1.)):
     sobel = cv2.Sobel(img_ch, cv2.CV_64F, *axis, ksize=sobel_kernel)
     abs_s = np.absolute(sobel)
 
-    binary_output = np.zeros_like(abs_s)
-    binary_output[(abs_s > thresh[0]) & (abs_s < thresh[1])] = 1
+    binary_output = np.zeros(abs_s.shape)
+    binary_output[(abs_s >= thresh[0]) & (abs_s <= thresh[1])] = 1
 
-    return binary_output
+    return abs_s
 
 
-def mag_thresh(img_ch, sobel_kernel=3, thresh=(0., 1.)):
-    sobel_x = cv2.Sobel(img_ch, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
-    sobel_y = cv2.Sobel(img_ch, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
+def gradient_magnitude_thresh(sobel_x, sobel_y, thresh=(0., 1.)):
+    """
+    Calculates the magnitude of the gradient and returns a thresholded mask.
+
+    :param img_ch:
+    :param sobel_kernel:
+    :param thresh: tuple defining the range for the threshold. Includes the bounds.
+    :return: binary mask
+    """
 
     abs_grad_mag = np.sqrt(sobel_x ** 2 + sobel_y ** 2)
 
-    mag_binary = np.zeros_like(abs_grad_mag)
-    mag_binary[(abs_grad_mag > thresh[0]) & (abs_grad_mag < thresh[1])] = 1.
+    mag_binary = np.zeros(abs_grad_mag.shape)
+    mag_binary[(abs_grad_mag >= thresh[0]) & (abs_grad_mag <= thresh[1])] = 1
 
-    return mag_binary
+    return abs_grad_mag
 
 
-def dir_threshold(img_ch, sobel_kernel=3, thresh=(0, np.pi / 2)):
-    sobelx = cv2.Sobel(img_ch, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
-    sobely = cv2.Sobel(img_ch, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
+def gradient_direction_thresh(sobel_x, sobel_y, thresh=(0, np.pi / 2)):
+    """
+    Calculates the direction of the gradient and returns a thresholded mask.
+
+    :param img_ch:
+    :param sobel_kernel:
+    :param thresh:
+    :return:
+    """
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        abs_grad_dir = np.absolute(np.arctan(sobely / sobelx))
+        abs_grad_dir = np.absolute(np.arctan(sobel_y / sobel_x))
         max_val = np.nanmax(abs_grad_dir)
         abs_grad_dir[np.isnan(abs_grad_dir)] = max_val
-        dir_binary = np.zeros_like(abs_grad_dir)
+        dir_binary = np.zeros(abs_grad_dir.shape)
         abs_grad_dir = abs_grad_dir / max_val
-        dir_binary[(abs_grad_dir > thresh[0]) & (abs_grad_dir < thresh[1])] = 1
+        dir_binary[(abs_grad_dir >= thresh[0]) & (abs_grad_dir <= thresh[1])] = 1
 
-    return dir_binary
+    return abs_grad_dir
 
 
 def equalize_luminance(img):
@@ -71,7 +104,7 @@ def equalize_luminance(img):
 def colorspace_channel_select(img, cs, ch, thresh=(0, 255)):
     cs_img = cv2.cvtColor(img, cs)
     s_ch = cs_img[:, :, ch]
-    retval, ch_binary = cv2.threshold(s_ch.astype('uint8'), thresh[0], thresh[1], cv2.THRESH_BINARY)
+    _, ch_binary = cv2.threshold(s_ch.astype('uint8'), thresh[0], thresh[1], cv2.THRESH_BINARY)
 
     return ch_binary
 
@@ -112,14 +145,18 @@ def extract_yellow(img):
 def extract_white(img):
     thresh = 0.80 - (1. - np.percentile(img, 99.9))
     mask = cv2.inRange(img, (thresh, thresh, thresh), (1., 1., 1.))
-
     return mask
 
 
 def extract_dark(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     mask = cv2.inRange(hsv, (0, 0, 0.), (360., 0.6, 0.5))
+    return mask
 
+
+def extract_highlights(img):
+    p = int(np.percentile(img, 99.9)-30)
+    mask = cv2.inRange(img, p, 255)
     return mask
 
 
@@ -131,12 +168,9 @@ def generate_lane_mask(img):
     y = abs_sobel_thresh(gray, orient='y', sobel_kernel=3, thresh=(0.05, .2))
 
     x_mul_y = x * y
-    x_mul_y = gaussian_blur(x_mul_y, 11)
 
-    dir = dir_threshold(gray, sobel_kernel=3, thresh=(0.4, 0.8))
-    dir = gaussian_blur(dir, 11)
-    mag = mag_thresh(gray, 3, thresh=(0.05, 0.5))
-    mag = gaussian_blur(mag, 11)
+    dir = gradient_direction_thresh(x, y, thresh=(0.4, 0.8))
+    mag = gradient_magnitude_thresh(x, y, thresh=(0.05, 0.5))
 
     dir_mul_mag = dir * mag
 
@@ -156,7 +190,6 @@ def generate_lane_mask(img):
 
 
 def histogram_lane_detection(img, steps, search_window, h_window, v_window):
-    # TODO add dynamic search window. Grows if detected peaks get close to border.
     all_x = []
     all_y = []
     masked_img = img[:, search_window[0]:search_window[1]]
@@ -211,9 +244,9 @@ def highest_n_peaks(histogram, peaks, n=2, threshold=0):
 
 
 def histogram_smoothing(histograms, window=3):
-    smoothed = np.zeros_like(histograms)
+    smoothed = np.zeros(histograms.shape)
     for h_i, hist in enumerate(histograms):
-        window_sum = np.zeros_like(hist)
+        window_sum = np.zeros(hist.shape)
         for w_i in range(window):
             index = w_i + h_i - window // 2
             if index < 0:

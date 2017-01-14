@@ -4,8 +4,10 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 from scipy.misc import imread
 
 from CameraCalibration import get_camera_calibration, CameraCalibrator
+from ImageUtils import extract_highlights
 from LaneDetector import LaneDetector
 
+FRAME_SHAPE = (1280, 720)
 HIST_STEPS = 10
 OFFSET = 200
 FRAME_MEMORY = 5
@@ -24,11 +26,19 @@ DST = np.float32([
 
 if __name__ == '__main__':
     cam_calibration = get_camera_calibration()
-    cam_calibrator = CameraCalibrator((1280, 720), cam_calibration)
+    cam_calibrator = CameraCalibrator(FRAME_SHAPE, cam_calibration)
 
-    ld = LaneDetector(SRC, DST, n_frames=FRAME_MEMORY, cam_calibration=cam_calibrator, transform_offset=OFFSET)
+    #ld = LaneDetector(SRC, DST, n_frames=FRAME_MEMORY, cam_calibration=cam_calibrator, transform_offset=OFFSET)
 
-    project_output = '../project_video_ann.mp4'
-    clip1 = VideoFileClip("../project_video.mp4")
-    project_clip = clip1.fl_image(ld.process_frame)
+    # project_output = '../challenge_video_ann.mp4'
+    # clip1 = VideoFileClip("../challenge_video.mp4")
+
+    project_output = '../harder_challenge_video_ann.mp4'
+    clip1 = VideoFileClip("../harder_challenge_video.mp4")
+
+    # project_output = '../project_video_ann.mp4'
+    # clip1 = VideoFileClip("../project_video.mp4")
+    # project_clip = clip1.fl_image(ld.process_frame)
+    project_clip = clip1.fl_image(extract_highlights)
+
     project_clip.write_videofile(project_output, audio=False)
