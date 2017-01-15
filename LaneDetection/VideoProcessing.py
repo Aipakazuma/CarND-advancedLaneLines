@@ -20,7 +20,7 @@ DST = np.float32([
     (SRC[-1][0] - OFFSET, 0),
     (SRC[-1][0] - OFFSET, 720)])
 
-VIDEOS = ["../project_video.mp4", "../challenge_video.mp4", "../harder_challenge_video.mp4"]
+VIDEOS = ["../videos/project_video.mp4", "../videos/challenge_video.mp4", "../videos/harder_challenge_video.mp4"]
 SELECTED_VIDEO = 1
 
 if __name__ == '__main__':
