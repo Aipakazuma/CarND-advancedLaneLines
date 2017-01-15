@@ -1,9 +1,14 @@
 import numpy as np
 
 
-# Define a class to receive the characteristics of each line detection
 class Line:
     def __init__(self, n_frames=1, x=None, y=None):
+        """
+        Define a class to receive the characteristics of each line detection
+        :param n_frames: Number of frames for smoothing
+        :param x: initial x coordinates
+        :param y: initial y coordinates
+        """
         # Frame memory
         self.n_frames = n_frames
         # was the line detected in the last iteration?
@@ -37,6 +42,11 @@ class Line:
             self.update(x, y)
 
     def update(self, x, y):
+        """
+        Updates the line representation.
+        :param x: list of x values
+        :param y: list of y values
+        """
         assert len(x) == len(y), 'x and y have to be the same size'
 
         self.allx = x
@@ -62,6 +72,12 @@ class Line:
         self.best_fit_poly = np.poly1d(self.best_fit)
 
     def is_current_fit_parallel(self, other_line, threshold=(0, 0)):
+        """
+        Checks if two lines are parallel by comparing their first two coefficients.
+        :param other_line: Line to compare to
+        :param threshold: Tuple of float values representing the delta thresholds for the coefficients.
+        :return:
+        """
         first_coefi_dif = np.abs(self.current_fit[0] - other_line.current_fit[0])
         second_coefi_dif = np.abs(self.current_fit[1] - other_line.current_fit[1])
 
@@ -70,13 +86,29 @@ class Line:
         return is_parallel
 
     def get_current_fit_distance(self, other_line):
+        """
+        Gets the distance between the current fit polynomials of two lines
+        :param other_line:
+        :return:
+        """
         return np.abs(self.current_fit_poly(719) - other_line.current_fit_poly(719))
 
     def get_best_fit_distance(self, other_line):
+        """
+        Gets the distance between the best fit polynomials of two lines
+        :param other_line:
+        :return:
+        """
         return np.abs(self.best_fit_poly(719) - other_line.best_fit_poly(719))
 
 
 def calc_curvature(fit_cr):
+    """
+    Calculates the curvature of a line in meters
+    :param fit_cr:
+    :return: radius of curvature in meters
+    """
+
     # Define conversions in x and y from pixels space to meters
     ym_per_pix = 30 / 720  # meters per pixel in y dimension
     xm_per_pix = 3.7 / 700  # meteres per pixel in x dimension

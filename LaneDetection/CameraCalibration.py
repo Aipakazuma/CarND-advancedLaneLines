@@ -1,7 +1,8 @@
-import numpy as np
 import pickle
-import cv2
 from glob import glob
+
+import cv2
+import numpy as np
 from scipy.misc import imresize, imread
 from tqdm import tqdm
 
@@ -15,7 +16,12 @@ CALIBRATION_PATH = '../camera_cal/calibration.p'
 
 def calculate_camera_calibration(path_pattern, rows, cols):
     """
-    Caluculates the camera calibration based in chessboard images.
+    Calculates the camera calibration based on chessboard images.
+
+    :param path_pattern:
+    :param rows: number of rows on chessboard
+    :param cols: number of columns on chessboard
+    :return:
     """
     objp = np.zeros((rows * cols, 3), np.float32)
     objp[:, :2] = np.mgrid[0:cols, 0:rows].T.reshape(-1, 2)
@@ -72,11 +78,16 @@ def get_camera_calibration():
         with open(CALIBRATION_PATH, "rb") as f:
             calibration = pickle.load(f)
 
-    return calibration;
+    return calibration
 
 
 class CameraCalibrator:
     def __init__(self, image_shape, calibration):
+        """
+        Helper class to remove lens distortion from images
+        :param image_shape: with and height of the image
+        :param calibration: calibration object which can be retrieved from "get_camera_calibration()"
+        """
         self.objpoints = calibration['objpoints']
         self.imgpoints = calibration['imgpoints']
         self.image_shape = image_shape
@@ -86,4 +97,3 @@ class CameraCalibrator:
 
     def undistort(self, img):
         return cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
-
