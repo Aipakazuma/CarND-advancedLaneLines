@@ -64,30 +64,25 @@ class LaneDetector:
         Draws the predicted lane onto the image. Containing the lane area, center line and the lane lines.
         :param img:
         """
-        overlay = np.zeros([*img.shape])
         mask = np.zeros([img.shape[0], img.shape[1]])
-
-        # lane area
-        lane_area = calculate_lane_area((self.left_line, self.right_line), img.shape[0], 20)
-        mask = cv2.fillPoly(mask, np.int32([lane_area]), 1)
-        mask = self.perspective_transformer.inverse_transform(mask)
-
-        overlay[mask == 1] = (255, 128, 0)
-        selection = (overlay != 0)
-        img[selection] = img[selection] * 0.3 + overlay[selection] * 0.7
 
         # center line
         mask[:] = 0
         mask = draw_poly_arr(mask, self.center_poly, 20, 255, 5, True, tip_length=0.5)
-        mask = self.perspective_transformer.inverse_transform(mask)
         img[mask == 255] = (255, 75, 2)
 
         # lines best
         mask[:] = 0
         mask = draw_poly(mask, self.left_line.best_fit_poly, 5, 255)
         mask = draw_poly(mask, self.right_line.best_fit_poly, 5, 255)
-        mask = self.perspective_transformer.inverse_transform(mask)
         img[mask == 255] = (255, 200, 2)
+
+        # lines curret
+        mask[:] = 0
+        mask = draw_poly(mask, self.left_line.current_fit_poly, 5, 255)
+        mask = draw_poly(mask, self.right_line.current_fit_poly, 5, 255)
+        img[mask == 255] = (0, 200, 0)
+
 
     def process_frame(self, frame):
         """
@@ -161,6 +156,7 @@ class LaneDetector:
             else:
                 self.right_line = Line(self.n_frames, right_y, right_x)
 
+        frame = np.stack([frame, frame, frame], 2)*255
         # Add information onto the frame
         if self.left_line is not None and self.right_line is not None:
             self.dists.append(self.left_line.get_best_fit_distance(self.right_line))
@@ -168,7 +164,6 @@ class LaneDetector:
             self.curvature = calc_curvature(self.center_poly)
             self.offset = (frame.shape[1] / 2 - self.center_poly(719)) * 3.7 / 700
 
-            self.__draw_lane_overlay(orig_frame)
-            self.__draw_info_panel(orig_frame)
+            self.__draw_lane_overlay(frame)
 
-        return orig_frame
+        return frame
