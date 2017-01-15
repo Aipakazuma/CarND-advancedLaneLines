@@ -1,5 +1,5 @@
 from ImageUtils import *
-from Line import Line, calc_curvature
+from Line import Line
 from PerspectiveTransformer import PerspectiveTransformer
 
 
@@ -83,7 +83,6 @@ class LaneDetector:
         mask = draw_poly(mask, self.right_line.current_fit_poly, 5, 255)
         img[mask == 255] = (0, 200, 0)
 
-
     def process_frame(self, frame):
         """
         Apply lane detection on a single image.
@@ -156,14 +155,10 @@ class LaneDetector:
             else:
                 self.right_line = Line(self.n_frames, right_y, right_x)
 
-        frame = np.stack([frame, frame, frame], 2)*255
-        # Add information onto the frame
-        if self.left_line is not None and self.right_line is not None:
-            self.dists.append(self.left_line.get_best_fit_distance(self.right_line))
-            self.center_poly = (self.left_line.best_fit_poly + self.right_line.best_fit_poly) / 2
-            self.curvature = calc_curvature(self.center_poly)
-            self.offset = (frame.shape[1] / 2 - self.center_poly(719)) * 3.7 / 700
-
-            self.__draw_lane_overlay(frame)
+        frame = np.stack([frame, frame, frame], 2) * 255
+        if len(left_y) > 0:
+            frame[left_y, left_x] = (255, 0, 0)
+        if len(right_y) > 0:
+            frame[right_y, right_x] = (0, 0, 255)
 
         return frame

@@ -21,7 +21,7 @@ DST = np.float32([
     (SRC[-1][0] - OFFSET, 720)])
 
 VIDEOS = ["../project_video.mp4", "../challenge_video.mp4", "../harder_challenge_video.mp4"]
-SELECTED_VIDEO = 1
+SELECTED_VIDEO = 0
 
 if __name__ == '__main__':
     cam_calibration = get_camera_calibration()
@@ -32,5 +32,5 @@ if __name__ == '__main__':
     clip1 = VideoFileClip(VIDEOS[SELECTED_VIDEO])
     project_clip = clip1.fl_image(ld.process_frame)
 
-    project_output = VIDEOS[SELECTED_VIDEO][:-4] + '_ann.mp4'
+    project_output = VIDEOS[SELECTED_VIDEO][:-4] + '_pixel.mp4'
     project_clip.write_videofile(project_output, audio=False)
