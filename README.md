@@ -3,6 +3,10 @@
 This project was created as an assessment for the [Self-Driving Car Nanodegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013) Program by Udacity. The goal is to detect lane lines on videos, calculate the curvature of the and the offset of the car.
 
 ## Result
+### Images
+![sample detection](sample_output.jpg)
+
+### Videos
 Click on the image to play the video.
 
 Track 1                       |  Track 1 + Debugging
