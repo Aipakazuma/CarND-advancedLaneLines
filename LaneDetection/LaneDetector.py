@@ -34,7 +34,7 @@ class LaneDetector:
 
         self.dists = []
 
-    def __line_found(self, left, right):
+    def __line_plausible(self, left, right):
         """
         Determines if pixels describing two line are plausible lane lines based on curvature and distance.
         :param left: Tuple of arrays containing the coordinates of detected pixels
@@ -47,6 +47,29 @@ class LaneDetector:
             new_left = Line(y=left[0], x=left[1])
             new_right = Line(y=right[0], x=right[1])
             return are_lanes_plausible(new_left, new_right)
+
+    def __check_lines(self, left_x, left_y, right_x, right_y):
+        """
+        Compares two line to each other and to their last prediction.
+        :param left_x:
+        :param left_y:
+        :param right_x:
+        :param right_y:
+        :return: boolean tuple (left_detected, right_detected)
+        """
+        left_detected = False
+        right_detected = False
+
+        if self.__line_plausible((left_x, left_y), (right_x, right_y)):
+            left_detected = True
+            right_detected = True
+        elif self.left_line is not None and self.right_line is not None:
+            if self.__line_plausible((left_x, left_y), (self.left_line.ally, self.left_line.allx)):
+                left_detected = True
+            if self.__line_plausible((right_x, right_y), (self.right_line.ally, self.right_line.allx)):
+                right_detected = True
+
+        return left_detected, right_detected
 
     def __draw_info_panel(self, img):
         """
@@ -107,8 +130,8 @@ class LaneDetector:
         # Apply a perspective transform to rectify binary image ("birds-eye view").
         frame = self.perspective_transformer.transform(frame)
 
-        left_detected = False
-        right_detected = False
+        left_detected = right_detected = False
+        left_x = left_y = right_x = right_y = []
 
         # If there have been lanes detected in the past, the algorithm will first try to
         # find new lanes along the old one. This will improve performance
@@ -116,14 +139,7 @@ class LaneDetector:
             left_x, left_y = detect_lane_along_poly(frame, self.left_line.best_fit_poly, self.line_segments)
             right_x, right_y = detect_lane_along_poly(frame, self.right_line.best_fit_poly, self.line_segments)
 
-            if self.__line_found((left_x, left_y), (right_x, right_y)):
-                left_detected = True
-                right_detected = True
-            elif self.left_line is not None and self.right_line is not None:
-                if self.__line_found((left_x, left_y), (self.left_line.ally, self.left_line.allx)):
-                    left_detected = True
-                if self.__line_found((right_x, right_y), (self.right_line.ally, self.right_line.allx)):
-                    right_detected = True
+            left_detected, right_detected = self.__check_lines(left_x, left_y, right_x, right_y)
 
         # If no lanes are found a histogram search will be performed
         if not left_detected:
@@ -135,15 +151,8 @@ class LaneDetector:
                 frame, self.line_segments, (frame.shape[1] // 2, frame.shape[1] - self.image_offset), h_window=7)
             right_x, right_y = outlier_removal(right_x, right_y)
 
-        # Validate if detected lanes are plausible
-        if self.__line_found((left_x, left_y), (right_x, right_y)):
-            left_detected = True
-            right_detected = True
-        elif self.left_line is not None and self.right_line is not None:
-            if self.__line_found((left_x, left_y), (self.left_line.ally, self.left_line.allx)):
-                left_detected = True
-            if self.__line_found((right_x, right_y), (self.right_line.ally, self.right_line.allx)):
-                right_detected = True
+        if not left_detected or not right_detected:
+            left_detected, right_detected = self.__check_lines(left_x, left_y, right_x, right_y)
 
         # Updated left lane information.
         if left_detected:
