@@ -16,4 +16,8 @@ Track 2                      |  Track 2 + Debugging
 
 ## Camera Calibration
 
+Original                     |  Undistorted
+:----------------------------:|:------------------------------:
+![Original](camera_cal/calibration1.jpg)| ![Undistorted](output_images/calibration1_undist.jpg)
+
 ## Pipeline
