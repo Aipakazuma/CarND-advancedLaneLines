@@ -1,6 +1,8 @@
-## Advanced Lane Finding - WIP
+# Advanced Lane Finding
 
-This project is an assessment for the Self-Driving Car Nanodegree Program by Udacity. The goal is to detect lane lines on videos, calculate the curvature and the offset of the car.
+This project was created as an assessment for the [Self-Driving Car Nanodegree](https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013) Program by Udacity. The goal is to detect lane lines on videos, calculate the curvature of the and the offset of the car.
+
+## Result
 
 
 Track 1                       |  Track 1 + Debugging
@@ -11,3 +13,7 @@ Track 1                       |  Track 1 + Debugging
 Track 2                      |  Track 2 + Debugging
 :----------------------------:|:------------------------------:
 [![Track 2](http://img.youtube.com/vi/gPTx25qRpOY/0.jpg)](http://www.youtube.com/watch?v=gPTx25qRpOY) | [![Track 2 D](http://img.youtube.com/vi/5oFHE803Hyw/0.jpg)](http://www.youtube.com/watch?v=5oFHE803Hyw) 
+
+## Camera Calibration
+
+## Pipeline
