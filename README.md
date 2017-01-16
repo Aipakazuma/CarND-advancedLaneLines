@@ -42,8 +42,8 @@ Mask                          |  Birdseye View
 ![Mask](output_images/test1_mask.jpg)| ![Birdseye](output_images/test1_birdseye.jpg)
 
 ### Identify Pixels
-Birdseye View                 |  Left Lane Histogram           | Right Lane Histogram           | Assigned Pixels
-:----------------------------:|:------------------------------:|:------------------------------:|:------------------------------:
-![Birdseye](output_images/test1_birdseye.jpg) | ![Left Lane Histogram](output_images/test1_histogram_left.jpg) | ![Right Lane Histogram](output_images/test1_histogram_right.jpg) | ![Assigned Pixels](output_images/test1_pixel.jpg)
+Left Lane Histogram           | Right Lane Histogram           | Assigned Pixels
+:------------------------------:|:------------------------------:|:------------------------------:
+![Left Lane Histogram](output_images/test1_histogram_left.jpg) | ![Right Lane Histogram](output_images/test1_histogram_right.jpg) | ![Assigned Pixels](output_images/test1_pixel.jpg)
 
 ### Fit Polynomial
