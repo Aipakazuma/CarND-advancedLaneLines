@@ -118,7 +118,6 @@ def calc_curvature(fit_cr):
     y_eval = np.max(y)
 
     fit_cr = np.polyfit(y * ym_per_pix, x * xm_per_pix, 2)
-
-    curverad = ((1 + (2 * fit_cr[0] * y_eval + fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * fit_cr[0])
+    curverad = ((1 + (2 * fit_cr[0] * y_eval / 2. + fit_cr[1]) ** 2) ** 1.5) / np.absolute(2 * fit_cr[0])
 
     return curverad

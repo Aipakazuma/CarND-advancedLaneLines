@@ -21,7 +21,7 @@ DST = np.float32([
     (SRC[-1][0] - OFFSET, 720)])
 
 VIDEOS = ["../videos/project_video.mp4", "../videos/challenge_video.mp4", "../videos/harder_challenge_video.mp4"]
-SELECTED_VIDEO = 1
+SELECTED_VIDEO = 0
 
 if __name__ == '__main__':
     cam_calibration = get_camera_calibration()
